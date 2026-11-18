@@ -1,0 +1,9 @@
+{
+  "name": "cx-command-center",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CX Command Center (frontend estático + funções serverless)",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  }
+}
