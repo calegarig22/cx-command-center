@@ -11,5 +11,8 @@ window.CX_CONFIG = {
   DEMO_PASSWORD: "",
   // URL do gerador de recibos (projeto separado), aberto pelo módulo Recibos.
   RECIBOS_URL: "",
+  // Multa por cancelamento após o prazo de arrependimento (% sobre o serviço não utilizado).
+  // Valor de exemplo: ajuste conforme o seu contrato.
+  MULTA_PERCENTUAL: 10,
   BRAND: { nome: "CX Command Center", sub: "Escola de Idiomas Exemplo" },
 };

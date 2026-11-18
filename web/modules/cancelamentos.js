@@ -12,6 +12,10 @@ import {
 } from "../lib/ui.js";
 import { alertarSlack } from "../lib/notify.js";
 
+/* % de multa configurável em window.CX_CONFIG.MULTA_PERCENTUAL (exemplo: 10). */
+const MULTA_PCT = Number(window.CX_CONFIG?.MULTA_PERCENTUAL ?? 10);
+const MULTA = MULTA_PCT / 100;
+
 const nowTs = () =>new Date().toISOString().slice(0, 19).replace("T", " ");
 const PRAZO_LIMITE = 30;
 const ALERTA_DIAS = 20;
@@ -51,7 +55,7 @@ export function tipoPorDatas(compra, solicitacao, atual) {
 /* Cálculo padrão de estorno de cancelamento.
    - Dentro de 7 dias (direito do consumidor): estorno de 100% do valor total, sem multa.
    - Após 7 dias: devolve apenas o serviço proporcional aos meses restantes,
-     com multa de 10% sobre as parcelas remanescentes. Material não é devolvido. */
+     com multa configurável (MULTA_PERCENTUAL) sobre as parcelas remanescentes. Material não é devolvido. */
 export function calcCancel(f) {
   const meses = mesesDuracao(f.duracao);
   const usados = Number(f.meses_utilizados) || 0;
@@ -69,8 +73,8 @@ export function calcCancel(f) {
   let multa, estorno;
   if (retido) { multa = 0; estorno = 0; }
   else if (dentro7) { multa = 0; estorno = +(Number(f.valor_total) || 0).toFixed(2); }  // arrependimento: 100%
-  else if (recorrente) { multa = +(servicoRestante * 0.1).toFixed(2); estorno = 0; }     // paga multa; material segue
-  else { multa = +(servicoRestante * 0.1).toFixed(2); estorno = +Math.max(0, servicoRestante - multa).toFixed(2); }
+  else if (recorrente) { multa = +(servicoRestante * MULTA).toFixed(2); estorno = 0; }     // paga multa; material segue
+  else { multa = +(servicoRestante * MULTA).toFixed(2); estorno = +Math.max(0, servicoRestante - multa).toFixed(2); }
 
   return {
     meses, usados, restante, mensal: +mensal.toFixed(2), servicoRestante: +servicoRestante.toFixed(2),
@@ -306,10 +310,10 @@ export function CampoPerfil({ f, set, users, vendedores = [], admin = false }) {
         ? html`Cancelamento <b>dentro de 7 dias</b> — estorno integral (100%): <b class="estorno">${brl(f.valor_total)}</b>`
         : calc.recorrente
         ? html`Plano <b>recorrente</b> — <b>não há estorno</b>. Serviço mensal <b>${brl(calc.mensal)}</b> (${brl(f.valor_servico)} ÷ ${calc.meses || "—"} meses) · Restante <b>${calc.restante} ${calc.restante === 1 ? "mês" : "meses"}</b>
-            (${calc.restante} × ${brl(calc.mensal)} = <b>${brl(calc.servicoRestante)}</b>) · Multa 10% <b class="estorno">${brl(calc.multa)}</b> (a pagar)
+            (${calc.restante} × ${brl(calc.mensal)} = <b>${brl(calc.servicoRestante)}</b>) · Multa ${MULTA_PCT}% <b class="estorno">${brl(calc.multa)}</b> (a pagar)
             <br/>Material restante <b>${brl(calc.materialRestante)}</b> — <b>continua sendo debitado</b>. O aluno paga apenas a multa; o material segue.`
         : html`Serviço mensal <b>${brl(calc.mensal)}</b> (${brl(f.valor_servico)} ÷ ${calc.meses || "—"} meses) · Restante <b>${calc.restante} ${calc.restante === 1 ? "mês" : "meses"}</b>
-            (${calc.restante} × ${brl(calc.mensal)} = <b>${brl(calc.servicoRestante)}</b>) · Multa 10% <b>${brl(calc.multa)}</b>
+            (${calc.restante} × ${brl(calc.mensal)} = <b>${brl(calc.servicoRestante)}</b>) · Multa ${MULTA_PCT}% <b>${brl(calc.multa)}</b>
             <br/>Valor para estorno: <b class="estorno">${brl(calc.estorno)}</b> · Material (não devolvido): ${brl(f.valor_material)}`}
     </div>
     <label class="chk"><input type="checkbox" checked=${manual}
